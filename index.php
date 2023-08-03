@@ -33,7 +33,7 @@
     <td><?= $message ?></td>
     <!-- Form -->
     <div class="col-6 mx-auto mb-3">
-      <form action="index.php" method="post">
+      <form action="index.php" method="post" enctype="multipart/form-data">
         <input class="form-control mb-3" type="text" name="titre" placeholder="Titre">
         <input class="form-control mb-3" type="text" name="auteur" placeholder="Auteur">
         <textarea class="form-control mb-3" name="resume"  cols="30" rows="10" placeholder="Résume"></textarea>
@@ -67,7 +67,7 @@
         </tr>
         <?php foreach($livres as $livre){?>
           <tr>
-            <td><?= $livre['titre'] ?></td>
+            <td><?= $livre['titre'] ?><a href="uploads/<?= $livre['fichier'] ?>" target="_blank"><i class="bi bi-file-earmark-pdf"></i></a></td>
             <td><?= $livre['auteur'] ?></td>
             <td><?= $livre['resume'] ?></td>
             <td><?= $livre['categorie'] ?></td>

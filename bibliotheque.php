@@ -30,19 +30,36 @@
             $auteur = $_POST["auteur"];
             $resume = $_POST["resume"];
             $categorie = $_POST["categorie"];
+            $file = upload_file();
+
 
             if(empty($titre) || empty($auteur) || empty($resume) || empty($categorie)){
                 $message = "Un des champ du formulaire est vide....";
             } else {
-                $ordre_sql2 = "INSERT INTO livre(titre, auteur, resume, categorie) VALUES ('$titre' , '$auteur', '$resume', '$categorie')";
-            if($db->query($ordre_sql2) === TRUE) {
-                    $message = "Livre inseré avec succès.";
-                    //$livres = $db->query($ordre_sql1);
-                    header("Location: index.php");
-                    //echo '<script>window.location.href = "index.php";</script>';
-                    exit();
+                $ordre_sql2 = "INSERT INTO livre(titre, auteur, resume, categorie, fichier) VALUES (? , ?, ?, ?, ?)";
+                $statment = $db->prepare($ordre_sql2);
 
+                if($statment){
+                    $statment->bindParam(1, $titre);
+                    $statment->bindParam(2, $auteur);
+                    $statment->bindParam(3, $resume);
+                    $statment->bindParam(4, $categorie);
+                    $statment->bindParam(5, $file);
+
+                    // Execute statement
+                    if($statment->execute()){
+                        header("Location: index.php");
+                        exit();
+                    } else {
+                        print_r("error: ".$statment->error);
+                    }
+
+                    $statment->close();
+                } else {
+                    print_r("error: ".$bd->error);
                 }
+
+                $bd->close();
             }
         }
     }
@@ -52,13 +69,23 @@
         if(isset($_POST["form2"])){
             $id = $_POST["id"];
            
-            $ordre_sql3 = "DELETE FROM livre WHERE id LIKE $id";
-            if($db->query($ordre_sql3)) {
-                $message = "Livre suprimé avec succès.";
-                header("Location: index.php");
-                exit();
+            $ordre_sql3 = "DELETE FROM livre WHERE id LIKE ?";
+            $statement = $db->prepare($ordre_sql3);
 
+            $statement->bindParam(1, $id);
+
+            if($statement){
+                if($statement->execute()) {
+                    $message = "Livre suprimé avec succès.";
+                    header("Location: index.php");
+                    exit();
+                } else {
+                    print_r("Error". $statement->errorInfo()[2]);
+                }
+    
+                $statement->close();
             }
+            $bd->close();
         }
     }
 /*
@@ -103,4 +130,33 @@
     }
    
 */
+
+function upload_file() {
+    $file_name = $_FILES["file"]["name"];
+    $file_tmp = $_FILES["file"]["tmp_name"];
+    $file_type = $_FILES["file"]["type"];
+    $file_size = $_FILES["file"]["size"];
+    $file_error = $_FILES["file"]["error"];
+
+    // Generate a timestamp to append to the filename
+    $timestamp = time(); // You can customize the timestamp format if needed
+
+    // Extract the file extension from the original filename
+    $file_extension = pathinfo($file_name, PATHINFO_EXTENSION);
+
+    // Create a new filename with the timestamp and original extension
+    $new_filename = $timestamp . '_' . $file_name;
+
+    // Define the destination path
+    $destination = "uploads/" . $new_filename;  // Choose your upload directory
+
+    // Handle the uploaded file
+    if ($file_error === UPLOAD_ERR_OK) {
+        move_uploaded_file($file_tmp, $destination);
+        return $new_filename;
+    } else {
+        echo "File upload error: " . $file_error;
+    }
+    
+}
 ?>
